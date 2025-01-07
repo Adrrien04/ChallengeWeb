@@ -31,9 +31,13 @@ class User
     #[ORM\ManyToMany(targetEntity: Achievement::class, mappedBy: 'utilisateur')]
     private Collection $achievements;
 
+    #[ORM\OneToMany(mappedBy: 'utilisateur', targetEntity: Badge::class)]
+    private Collection $badges;
+
     public function __construct()
     {
         $this->achievements = new ArrayCollection();
+        $this->badges = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -111,6 +115,36 @@ class User
     {
         if ($this->achievements->removeElement($achievement)) {
             $achievement->removeUtilisateur($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Badge>
+     */
+    public function getBadges(): Collection
+    {
+        return $this->badges;
+    }
+
+    public function addBadge(Badge $badge): static
+    {
+        if (!$this->badges->contains($badge)) {
+            $this->badges->add($badge);
+            $badge->setUtilisateur($this);
+        }
+
+        return $this;
+    }
+
+    public function removeBadge(Badge $badge): static
+    {
+        if ($this->badges->removeElement($badge)) {
+            // set the owning side to null (unless already changed)
+            if ($badge->getUtilisateur() === $this) {
+                $badge->setUtilisateur(null);
+            }
         }
 
         return $this;
