@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\QuestRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -31,6 +33,14 @@ class Quest
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $derniereRealisation = null;
+
+    #[ORM\OneToMany(mappedBy: 'quete', targetEntity: Achievement::class)]
+    private Collection $achievements;
+
+    public function __construct()
+    {
+        $this->achievements = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -105,6 +115,36 @@ class Quest
     public function setDerniereRealisation(?\DateTimeInterface $derniereRealisation): static
     {
         $this->derniereRealisation = $derniereRealisation;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Achievement>
+     */
+    public function getAchievements(): Collection
+    {
+        return $this->achievements;
+    }
+
+    public function addAchievement(Achievement $achievement): static
+    {
+        if (!$this->achievements->contains($achievement)) {
+            $this->achievements->add($achievement);
+            $achievement->setQuete($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAchievement(Achievement $achievement): static
+    {
+        if ($this->achievements->removeElement($achievement)) {
+            // set the owning side to null (unless already changed)
+            if ($achievement->getQuete() === $this) {
+                $achievement->setQuete(null);
+            }
+        }
 
         return $this;
     }

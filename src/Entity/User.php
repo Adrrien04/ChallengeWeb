@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
@@ -25,6 +27,14 @@ class User
 
     #[ORM\Column(nullable: true)]
     private ?array $roles = null;
+
+    #[ORM\ManyToMany(targetEntity: Achievement::class, mappedBy: 'utilisateur')]
+    private Collection $achievements;
+
+    public function __construct()
+    {
+        $this->achievements = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -75,6 +85,33 @@ class User
     public function setRoles(?array $roles): static
     {
         $this->roles = $roles;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Achievement>
+     */
+    public function getAchievements(): Collection
+    {
+        return $this->achievements;
+    }
+
+    public function addAchievement(Achievement $achievement): static
+    {
+        if (!$this->achievements->contains($achievement)) {
+            $this->achievements->add($achievement);
+            $achievement->addUtilisateur($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAchievement(Achievement $achievement): static
+    {
+        if ($this->achievements->removeElement($achievement)) {
+            $achievement->removeUtilisateur($this);
+        }
 
         return $this;
     }
